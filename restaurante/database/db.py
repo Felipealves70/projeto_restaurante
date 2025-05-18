@@ -2,7 +2,7 @@ import sqlite3
 
 
 def conectar():
-    return sqlite3.connect('restaurante.db')
+    return sqlite3.connect('restaurante/restaurante.db')
 
 
 def criar_tabelas():
@@ -42,10 +42,6 @@ def criar_tabelas():
                    senha INTEGER
         )
     ''')
-
-    cursor.execute('''
-        INSERT INTO adm (usuario, senha) VALUES (?, ?)
-    ''', ('adm', '123'))
 
     con.commit()
     con.close()

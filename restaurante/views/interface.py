@@ -26,8 +26,8 @@ def gerar_horarios():
     return horarios
 
 
-def formatar_telefone(event):
-    telefone = telefone_entry.get()
+def formatar_telefone(entry):
+    telefone = entry.get()
     numeros = ''.join(filter(str.isdigit, telefone))[:11]
 
     telefone_formatado = ""
@@ -40,8 +40,8 @@ def formatar_telefone(event):
     else:
         telefone_formatado = numeros
 
-    telefone_entry.delete(0, "end")
-    telefone_entry.insert(0, telefone_formatado)
+    entry.delete(0, ctk.END)
+    entry.insert(0, telefone_formatado)
 
 
 def abrir_nova_reserva(conteudo_frame):
@@ -59,10 +59,10 @@ def abrir_nova_reserva(conteudo_frame):
 
     ctk.CTkLabel(frame_interno, text="Telefone").grid(
         row=0, column=2, padx=20, pady=20)
-    global telefone_entry
     telefone_entry = ctk.CTkEntry(frame_interno, width=200, height=35)
     telefone_entry.grid(row=0, column=3, padx=20, pady=20)
-    telefone_entry.bind("<KeyRelease>", formatar_telefone)
+    telefone_entry.bind(
+        "<KeyRelease>", lambda event: formatar_telefone(telefone_entry))
 
     ctk.CTkLabel(frame_interno, text="E-mail").grid(row=1,
                                                     column=0, padx=20, pady=20)
@@ -145,7 +145,7 @@ def abrir_edicao(conteudo_frame):
         frame_interno, width=200, height=35, values=ctrl_res.get_mesas_para_combobox())
     mesa_combo.grid(row=1, column=3, padx=10, pady=30)
 
-    def preencher_campos_reserva(event):
+    def preencher_campos_reserva():
         selecionado = lista.get()
         reserva_id = reserva_dict.get(selecionado)
         if reserva_id:
@@ -156,18 +156,24 @@ def abrir_edicao(conteudo_frame):
                     mesa_combo.set(f"Mesa {r[2]}")
                     break
 
-    lista.bind("<<ComboboxSelected>>", preencher_campos_reserva)
+    lista.configure(command=lambda _: preencher_campos_reserva())
 
     def atualizar():
         item = lista.get()
-        if item:
-            reserva_id = reserva_dict[item]
-            data = data_entry.get_date().strftime("%d-%m-%Y")
-            mesa_nome = mesa_combo.get()
-            ctrl_res.editar_reserva(
-                reserva_id, data, horario_combo.get(), mesa_nome)
+        if item not in reserva_dict:
+            messagebox.showwarning(
+                "Seleção inválida", "Por favor, selecione uma reserva válida.")
+            return
+
+        reserva_id = reserva_dict[item]
+        data = data_entry.get_date().strftime("%d-%m-%Y")
+        mesa_nome = mesa_combo.get()
+        if ctrl_res.editar_reserva(
+                reserva_id, data, horario_combo.get(), mesa_nome):
             messagebox.showinfo("Atualização", "Reserva atualizada!")
-            frame_interno.destroy()
+            abrir_edicao(conteudo_frame)
+        else:
+            messagebox.showerror("Erro", "Ediçao não realizada!")
 
     ctk.CTkButton(frame_interno, text="Atualizar", width=200, height=35,
                   command=atualizar).grid(row=2, column=0, padx=10, pady=30)
@@ -194,7 +200,7 @@ def abrir_cancelamento(conteudo_frame):
             reserva_id = reserva_dict[item]
             ctrl_res.excluir_reserva(reserva_id)
             messagebox.showinfo("Cancelamento", "Reserva cancelada!")
-            frame_interno.destroy()
+            abrir_cancelamento(conteudo_frame)
 
     ctk.CTkButton(frame_interno, width=200, height=35, text="Cancelar Reserva",
                   command=cancelar).grid(row=1, column=0, pady=20, padx=35)
@@ -223,31 +229,31 @@ def abrir_gerenciar_clientes(conteudo_frame):
     nome_entry.grid(row=1, column=1)
 
     ctk.CTkLabel(frame_interno, text="Telefone").grid(row=1, column=3)
-    global telefone_entry
     telefone_entry = ctk.CTkEntry(frame_interno, width=200, height=35)
     telefone_entry.grid(row=1, column=4, padx=30, pady=30)
-    telefone_entry.bind("<KeyRelease>", formatar_telefone)
+    telefone_entry.bind(
+        "<KeyRelease>", lambda event: formatar_telefone(telefone_entry))
 
     ctk.CTkLabel(frame_interno, text="E-mail").grid(row=2, column=0)
     email_entry = ctk.CTkEntry(
         frame_interno, width=200, height=35)
     email_entry.grid(row=2, column=1, padx=30, pady=30)
 
-    def preencher_campos_cliente(event):
+    def preencher_campos_cliente():
         selecionado = lista.get()
         cliente_id = cliente_dict.get(selecionado)
         if cliente_id:
             for c in clientes:
                 if c[0] == cliente_id:
-                    nome_entry.delete(0, "end")
+                    nome_entry.delete(0, ctk.END)
                     nome_entry.insert(0, c[1])
-                    telefone_entry.delete(0, "end")
+                    telefone_entry.delete(0, ctk.END)
                     telefone_entry.insert(0, c[2])
-                    email_entry.delete(0, "end")
+                    email_entry.delete(0, ctk.END)
                     email_entry.insert(0, c[3])
                     break
 
-    lista.bind("<<ComboboxSelected>>", preencher_campos_cliente)
+    lista.configure(command=lambda _: preencher_campos_cliente())
 
     def atualizar():
         selecionado = lista.get()
@@ -257,7 +263,7 @@ def abrir_gerenciar_clientes(conteudo_frame):
             ), telefone_entry.get(), email_entry.get())
             messagebox.showinfo(
                 "Atualizado", "Cliente atualizado com sucesso.")
-            frame_interno.destroy()
+            abrir_gerenciar_clientes(conteudo_frame)
 
     def excluir():
         selecionado = lista.get()
@@ -267,7 +273,7 @@ def abrir_gerenciar_clientes(conteudo_frame):
                 ctrl_cli.remover_cliente(cliente_id)
                 messagebox.showinfo(
                     "Excluído", "Cliente excluído com sucesso.")
-                frame_interno.destroy()
+                abrir_gerenciar_clientes(conteudo_frame)
 
     ctk.CTkButton(frame_interno, width=200, height=35, text="Atualizar Cliente",
                   command=atualizar).grid(row=3, column=0, padx=30, pady=10)
