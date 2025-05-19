@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, date
 from tkinter import messagebox
 import controllers.reserva_controller as ctrl_res
 import controllers.cliente_controller as ctrl_cli
+import os
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
@@ -313,17 +314,38 @@ def janela_principal():
     label = ctk.CTkLabel(menu_lateral, text="Menu", font=("Arial", 16))
     label.grid(row=1, column=0)
 
-    ctk.CTkButton(menu_lateral, height=35, text="Nova Reserva",
-                  command=lambda: abrir_nova_reserva(conteudo_frame)).grid(row=2, padx=15, column=0, pady=15, sticky="ew")
+    # Função para carregar ícones com tamanho adequado
+    def carregar_icone(caminho, tamanho=(20, 20)):
+        if os.path.exists(caminho):
+            return ctk.CTkImage(Image.open(caminho), size=tamanho)
+        else:
+            print(f"⚠️ Ícone não encontrado: {caminho}")
+            return None
 
-    ctk.CTkButton(menu_lateral, height=35, text="Ver Reservas",
-                  command=lambda: abrir_reservas(conteudo_frame)).grid(row=3, padx=15, column=0, pady=15, sticky="ew")
-    ctk.CTkButton(menu_lateral, height=35, text="Editar Reserva",
-                  command=lambda: abrir_edicao(conteudo_frame)).grid(row=4, padx=15, column=0, pady=15, sticky="ew")
-    ctk.CTkButton(menu_lateral, height=35, text="Cancelar Reserva",
-                  command=lambda: abrir_cancelamento(conteudo_frame)).grid(row=5, padx=15, column=0, pady=15, sticky="ew")
-    ctk.CTkButton(menu_lateral, height=35, text="Gerenciar Clientes",
-                  command=lambda: abrir_gerenciar_clientes(conteudo_frame)).grid(row=6, padx=15, column=0, pady=15, sticky="ew")
+    # --- Lista com (texto do botão, função que será chamada) ---
+    botoes_menu = [
+        ("Nova Reserva", abrir_nova_reserva, "restaurante/views/icons/add.png"),
+        ("Ver Reservas", abrir_reservas, "restaurante/views/icons/file.png"),
+        ("Editar Reserva", abrir_edicao, "restaurante/views/icons/edit.png"),
+        ("Cancelar Reserva", abrir_cancelamento,
+         "restaurante/views/icons/cancel.png"),
+        ("Gerenciar Clientes", abrir_gerenciar_clientes,
+         "restaurante/views/icons/user.png"),
+    ]
+
+    # Criar botões dinamicamente
+    for i, (texto, funcao, caminho_icone) in enumerate(botoes_menu, start=2):
+        icone = carregar_icone(caminho_icone)
+        botao = ctk.CTkButton(
+            menu_lateral,
+            height=40,
+            text=texto,
+            image=icone,
+            compound="left",
+            anchor="w",
+            command=lambda f=funcao: f(conteudo_frame)
+        )
+        botao.grid(row=i, padx=15, column=0, pady=10, sticky="ew")
 
     conteudo_frame = ctk.CTkFrame(root, corner_radius=0)
     conteudo_frame.grid(row=0, column=1, sticky="nsew")
