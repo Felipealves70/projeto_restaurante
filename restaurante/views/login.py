@@ -3,7 +3,7 @@ from tkinter import messagebox
 from PIL import Image
 from database.db import verificar_login
 from views.interface import janela_principal
-
+from views.cadastro import abrir_cadastro
 
 def iniciar_login():
     def fazer_login():
@@ -67,5 +67,10 @@ def iniciar_login():
     botao_login = ctk.CTkButton(
         conteudo, height=40, text="Entrar", command=fazer_login, width=250, corner_radius=20)
     botao_login.grid(row=4, column=0, columnspan=2, pady=20)
+
+# Botão de cadastro
+    botao_cadastro = ctk.CTkButton(
+        conteudo, height=35, text="Cadastrar", command=abrir_cadastro, width=250, corner_radius=20, fg_color="gray")
+    botao_cadastro.grid(row=5, column=0, columnspan=2, pady=(0, 10))
 
     root.mainloop()
